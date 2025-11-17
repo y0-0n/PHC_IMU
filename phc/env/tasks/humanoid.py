@@ -52,6 +52,7 @@ from scipy.spatial.transform import Rotation as sRot
 import gc
 import torch.multiprocessing as mp
 from phc.utils.draw_utils import agt_color, get_color_gradient
+import numpy as np
 
 
 ENABLE_MAX_COORD_OBS = True
@@ -631,6 +632,33 @@ class Humanoid(BaseTask):
 
         plane_params.restitution = self.plane_restitution
         self.gym.add_ground(self.sim, plane_params)
+        
+        for i in range(self.num_envs):
+            horizontal_scale = 0.05  # [m]
+            vertical_scale = 0.005  # [m]
+            num_rows = 200 # int(terrain_width/horizontal_scale)
+            num_cols = 200 # int(terrain_length/horizontal_scale)
+            heightfield = np.zeros((num_rows, num_cols), dtype=np.int16)
+            
+            for j in range(num_cols):
+                heightfield[:, j] = round((j-2) * 1/7) * 50
+            
+            max_val = np.max(heightfield)
+            default_pose = gymapi.Transform()
+            default_pose.p.x = -5 + 2 * self.cfg["env"]['env_spacing'] * (i % int(np.sqrt(self.num_envs)))
+            default_pose.p.y = -5 + 2 * self.cfg["env"]['env_spacing'] * (i // int(np.sqrt(self.num_envs)))
+            default_pose.p.z = -max_val/2 * vertical_scale  # to make sure the terrain is below the humanoid
+
+            _hfield = gymapi.HeightFieldParams()
+            _hfield.column_scale = horizontal_scale
+            _hfield.row_scale = horizontal_scale
+            _hfield.vertical_scale = vertical_scale  # vertical scale
+            _hfield.nbColumns=num_cols
+            _hfield.nbRows=num_rows
+            _hfield.transform = default_pose
+
+            self.gym.add_heightfield(self.sim, heightfield.flatten(), _hfield)
+
         return
 
     def _setup_character_props(self, key_bodies):
@@ -1040,6 +1068,18 @@ class Humanoid(BaseTask):
             self.gym.create_asset_force_sensor(humanoid_asset, right_foot_idx, sensor_pose, sensor_options)
             
         return
+    
+    def create_humanoid_imu_sensors(self, humanoid_asset, sensor_joint_names):
+        for jt in sensor_joint_names:
+            body_idx = self.gym.find_asset_rigid_body_index(humanoid_asset, jt)
+            sensor_pose = gymapi.Transform()
+            sensor_options = gymapi.ForceSensorProperties()
+            sensor_options.enable_constraint_solver_forces = True # for example contacts 
+            sensor_options.use_world_frame = False # Local frame so we can directly send it to computation. 
+            # These are the default values. 
+            
+        return
+
     
     def _process_rigid_body_props(self, props, env_id):
         return props
