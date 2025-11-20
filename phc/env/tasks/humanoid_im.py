@@ -320,7 +320,7 @@ class HumanoidIm(humanoid_amp_task.HumanoidAMPTask):
             motion_lib_cfg = EasyDict({
                 "motion_file": motion_train_file,
                 "device": torch.device("cpu"),
-                "fix_height": FixHeightMode.full_fix,
+                "fix_height": FixHeightMode.no_fix,
                 "min_length": self._min_motion_len,
                 "max_length": -1,
                 "im_eval": flags.im_eval,
@@ -686,6 +686,8 @@ class HumanoidIm(humanoid_amp_task.HumanoidAMPTask):
                 self.extras['clean_actions'] = self.clean_actions.cpu().numpy()
                 self.extras['reset_buf'] = self.reset_buf.cpu().numpy()  # n
 
+                # y0-0n
+                self.extras['rigid_body_state'] = self._rigid_body_state_reshaped[:, :self.num_bodies, :].cpu().numpy()  # n, b, 13
             
                 self.obs_buf_t = self.obs_buf.cpu().numpy() # update to next time step
 
@@ -1007,7 +1009,7 @@ class HumanoidIm(humanoid_amp_task.HumanoidAMPTask):
         else:
             assert (False), "Unsupported state initialization strategy: {:s}".format(str(self._state_init))
 
-        if flags.test:
+        if False and flags.test:
             motion_times[:] = 0
         
         if self.humanoid_type in ['h1', 'g1',"smpl", "smplh", "smplx"] :

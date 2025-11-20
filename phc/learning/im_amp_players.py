@@ -22,6 +22,9 @@ from datetime import datetime
 import copy
 COLLECT_Z = False
 
+from collections import deque
+experience_deq = deque(maxlen=100000)
+
 class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
     def __init__(self, config):
         super().__init__(config)
@@ -48,6 +51,7 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
             self.clean_actions, self.clean_actions_all = [], []
             self.keys_all = []
             self.reset_buf, self.reset_buf_all = [], []
+            self.rigid_body_state = [] # y0-0n
 
         if flags.im_eval:
             self.success_rate = 0
@@ -97,6 +101,7 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
                 self.clean_actions.append(info['clean_actions'])
                 self.env_actions.append(info['actions'])
                 self.reset_buf.append(info['reset_buf'])
+                self.rigid_body_state.append(info['rigid_body_state']) # y0-0n
 
             self.mpjpe.append(info["mpjpe"])
             self.gt_pos.append(info["body_pos_gt"])
@@ -211,6 +216,7 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
                                 "reset": np.concatenate(self.reset_buf_all), 
                                 "running_mean": self.running_mean_std.state_dict(),
                                 "config": humanoid_env.cfg,
+                                "rigid_body_state": np.array(self.rigid_body_state) # y0-0n
                                 }, dump_dir, compress=True)
                         exit()
 
