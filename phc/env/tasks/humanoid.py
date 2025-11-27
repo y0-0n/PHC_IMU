@@ -54,6 +54,10 @@ import torch.multiprocessing as mp
 from phc.utils.draw_utils import agt_color, get_color_gradient
 import numpy as np
 
+from datasets import Dataset, DatasetDict, Features, Value
+# from huggingface_hub import HfApi
+# hf_api = HfApi()
+MAX_BUFFER_SIZE = 10000 # 10,000개의 스텝마다 업로드
 
 ENABLE_MAX_COORD_OBS = True
 # PERTURB_OBJS = [
@@ -640,10 +644,12 @@ class Humanoid(BaseTask):
             num_cols = 200 # int(terrain_length/horizontal_scale)
             heightfield = np.zeros((num_rows, num_cols), dtype=np.int16)
             
-            for j in range(num_cols):
-                heightfield[:, j] = round((j-2) * 1/7) * 50
+            # for j in range(num_cols):
+            #     heightfield[:, j] = - round((j-2) * 1/7) * 50
+            heightfield[97:103, 97:103] = 90
             
-            max_val = np.max(heightfield)
+            # max_val = np.max(heightfield)
+            max_val = np.min(heightfield)
             default_pose = gymapi.Transform()
             default_pose.p.x = -5 + 2 * self.cfg["env"]['env_spacing'] * (i % int(np.sqrt(self.num_envs)))
             default_pose.p.y = -5 + 2 * self.cfg["env"]['env_spacing'] * (i // int(np.sqrt(self.num_envs)))
