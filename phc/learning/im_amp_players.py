@@ -210,14 +210,14 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
                         os.makedirs(osp.join(self.config['network_path'], "phc_act", motion_file), exist_ok=True)
                         print("Dumping to: ", dump_dir)
                         joblib.dump({
-                                "obs": self.obs_buf_all, 
-                                "clean_action": self.clean_actions_all, 
-                                "env_action": self.actions_all,
-                                "key_names": np.array(self.keys_all),
-                                "motion_lengths": np.array(self.motion_length_all),
+                                # "obs": self.obs_buf_all, 
+                                # "clean_action": self.clean_actions_all, 
+                                # "env_action": self.actions_all,
+                                # "key_names": np.array(self.keys_all),
+                                # "motion_lengths": np.array(self.motion_length_all),
                                 "reset": np.concatenate(self.reset_buf_all), # 첫번째 frame은 제외
-                                "running_mean": self.running_mean_std.state_dict(),
-                                "config": humanoid_env.cfg,
+                                # "running_mean": self.running_mean_std.state_dict(),
+                                # "config": humanoid_env.cfg,
                                 "rigid_body_state": self.rigid_body_state_all # y0-0n
                                 }, dump_dir, compress=True)
                         exit()
