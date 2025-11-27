@@ -51,7 +51,7 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
             self.clean_actions, self.clean_actions_all = [], []
             self.keys_all = []
             self.reset_buf, self.reset_buf_all = [], []
-            self.rigid_body_state = [] # y0-0n
+            self.rigid_body_state, self.rigid_body_state_all = [], [] # y0-0n
 
         if flags.im_eval:
             self.success_rate = 0
@@ -152,6 +152,8 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
                     self.reset_buf_all += all_reset_buf
                     
                     self.keys_all += humanoid_env._motion_lib.curr_motion_keys.tolist()
+                    
+                    self.rigid_body_state_all += self.rigid_body_state
 
                     self.motion_length_all += [obs.shape[0] for obs in all_obs_buf]
 
@@ -213,10 +215,10 @@ class IMAMPPlayerContinuous(amp_players.AMPPlayerContinuous):
                                 "env_action": self.actions_all,
                                 "key_names": np.array(self.keys_all),
                                 "motion_lengths": np.array(self.motion_length_all),
-                                "reset": np.concatenate(self.reset_buf_all), 
+                                "reset": np.concatenate(self.reset_buf_all), # 첫번째 frame은 제외
                                 "running_mean": self.running_mean_std.state_dict(),
                                 "config": humanoid_env.cfg,
-                                "rigid_body_state": np.array(self.rigid_body_state) # y0-0n
+                                "rigid_body_state": self.rigid_body_state_all # y0-0n
                                 }, dump_dir, compress=True)
                         exit()
 
